@@ -31,40 +31,31 @@ app.secret_key = os.getenv('SECRET_KEY') or 'dev-secret-key-change-me'
 # ✅ FINAL CORS FIX - SAB ALLOW (PRODUCTION READY)
 CORS(app, 
      supports_credentials=True, 
-     origins=["*"],  # Sab domains allow
+     origins="*",
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      allow_headers=["*"],
      expose_headers=["*"])
 
-# ✅ OPTIONAL: Specific domains ke liye (commented)
-# cors_origins = [
-#     'http://localhost:3000',
-#     'https://die-health.vercel.app',
-#     'https://die-maintenance.vercel.app'
-# ]
-# CORS(app, 
-#      supports_credentials=True, 
-#      origins=cors_origins,
-#      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-#      allow_headers=["*"])
+# ✅ PREFLIGHT REQUEST HANDLER
+@app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+@app.route('/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    return '', 200, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '3600'
+    }
 
-# ✅ EXTRA SAFETY - Har response mein CORS headers add karo
+# ✅ AFTER REQUEST HEADERS
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', '*')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
-
-# ✅ OPTIONS request handle karo
-@app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
-@app.route('/<path:path>', methods=['OPTIONS'])
-def handle_options(path):
-    return '', 200
-
-# Rest of your code continues here...
-# (app.py ka baaki code yahin se continue hoga)
 
 
 
