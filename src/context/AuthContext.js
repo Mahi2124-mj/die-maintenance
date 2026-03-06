@@ -5,12 +5,14 @@ import toast from 'react-hot-toast';
 const AuthContext = createContext();
 
 // 🔥 FIXED: Dynamic API URL with environment variable
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || 'https://tool-die-new-production.up.railway.app';  // ← DEFAULT CHANGE KARO
 axios.defaults.baseURL = API_URL;
 axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Content-Type'] = 'application/json';  // ← YEH ADD KARO
 
-// Debug log (remove in production if needed)
+// Debug log
 console.log('🌐 API URL:', API_URL);
+console.log('🔧 withCredentials:', axios.defaults.withCredentials);  // ← YEH ADD KARO
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -64,6 +66,9 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data.data);
         setPermissions(response.data.data.permissions || {});
         toast.success('Login successful');
+        
+        // ✅ Force redirect to dashboard
+        window.location.href = '/dashboard';
         return true;
       }
     } catch (error) {
@@ -79,6 +84,9 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setPermissions({});
       toast.success('Logged out');
+      
+      // ✅ Force redirect to login
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
     }
