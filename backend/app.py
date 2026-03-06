@@ -25,23 +25,34 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# 🔥 FIX 1: SECRET KEY - PRODUCTION READY
+# 🔥 SECRET KEY - PRODUCTION READY
 app.secret_key = os.getenv('SECRET_KEY') or secrets.token_hex(32)
 
-# 🔥 FIX 2: SESSION CONFIGURATION FOR CROSS-DOMAIN COOKIES
+# 🔥 SESSION CONFIGURATION FOR CROSS-DOMAIN COOKIES
 app.config.update(
-    SESSION_COOKIE_SAMESITE="None",      # Critical for cross-site requests
-    SESSION_COOKIE_SECURE=True,          # Required when SameSite=None
-    SESSION_COOKIE_HTTPONLY=True,        # Security best practice
-    SESSION_COOKIE_DOMAIN=None,          # Let browser handle domain automatically
-    SESSION_COOKIE_PATH='/',              # Available on all paths
-    PERMANENT_SESSION_LIFETIME=timedelta(days=7)  # Session duration
+    SESSION_COOKIE_SAMESITE="None",           # Critical for cross-site requests
+    SESSION_COOKIE_SECURE=True,               # Required when SameSite=None
+    SESSION_COOKIE_HTTPONLY=True,             # Security best practice
+    SESSION_COOKIE_DOMAIN=None,               # Let browser handle domain automatically
+    SESSION_COOKIE_PATH='/',                   # Available on all paths
+    PERMANENT_SESSION_LIFETIME=timedelta(days=7),  # Session duration
+    SESSION_REFRESH_EACH_REQUEST=True          # Refresh session on each request
 )
 
-# ✅ FINAL CORS FIX - SAB ALLOW (PRODUCTION READY)
-CORS(app,
-     supports_credentials=True,
-     origins=["https://die-maintenance.vercel.app"])
+# ✅ FINAL CORS FIX - SPECIFIC ORIGINS
+CORS(
+    app,
+    supports_credentials=True,
+    origins=[
+        "https://die-maintenance.vercel.app",
+        "http://localhost:3000",
+        "https://tool-die-new-production.up.railway.app"
+    ],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    expose_headers=["Content-Type", "Authorization"],
+    max_age=3600
+)
 
 # 👇 BAAKI ROUTES NORMAL
 @app.route('/api/status')
