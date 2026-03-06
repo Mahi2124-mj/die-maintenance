@@ -18,24 +18,21 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // Protected Route Component
 function PrivateRoute({ children, permission }) {
   const { user, permissions, loading } = useAuth();
-  
-  // ✅ Loading state handle karo
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
   
-  // ✅ Agar user login nahi hai to login pe bhejo
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
   }
   
-  // ✅ Permission check
   if (permission && !permissions[permission]) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" />;
   }
   
   return children;
@@ -43,28 +40,24 @@ function PrivateRoute({ children, permission }) {
 
 function RoleRoute({ children, allowedRoles = [] }) {
   const { user, loading } = useAuth();
-  
-  // ✅ Loading state handle karo
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
-  
-  if (!user) return <Navigate to="/login" replace />;
-  if (!allowedRoles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+  if (!user) return <Navigate to="/login" />;
+  if (!allowedRoles.includes(user.role)) return <Navigate to="/dashboard" />;
   return children;
 }
 
 function AppRoutes() {
   const { user, loading } = useAuth();
-  
-  // ✅ Loading state
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -75,12 +68,8 @@ function AppRoutes() {
       {user && <Navbar />}
       <div className={user ? 'pt-16' : ''}>
         <Routes>
-          {/* ✅ Login route - agar user already logged in hai to dashboard pe bhejo */}
-          <Route path="/login" element={
-            user ? <Navigate to="/dashboard" replace /> : <Login />
-          } />
-          
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+          <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
           
           <Route path="/dashboard" element={
             <PrivateRoute>
@@ -142,8 +131,7 @@ function AppRoutes() {
             </PrivateRoute>
           } />
 
-          {/* ✅ 404 redirect */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
         </Routes>
       </div>
     </div>
