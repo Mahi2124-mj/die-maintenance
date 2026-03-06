@@ -4,9 +4,14 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
-// Configure axios
-axios.defaults.baseURL = 'http://localhost:5000';
+// 🔥 FIXED: Dynamic API URL with environment variable
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+axios.defaults.baseURL = API_URL;
 axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+
+// Debug log
+console.log('🌐 Auth API URL:', API_URL);
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -44,6 +49,11 @@ export const AuthProvider = ({ children }) => {
         // Fetch permissions
         const permsResponse = await axios.get('/api/auth/permissions');
         setPermissions(permsResponse.data.data);
+        
+        // ✅ Redirect to dashboard if already on login page
+        if (window.location.pathname === '/login') {
+          window.location.href = '/dashboard';
+        }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -54,14 +64,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
+      console.log('🔐 Login attempt to:', API_URL);
       const response = await axios.post('/api/auth/login', { username, password });
       if (response.data.success) {
         setUser(response.data.data);
         setPermissions(response.data.data.permissions || {});
         toast.success('Login successful');
+        
+        // ✅ Force redirect to dashboard
+        window.location.href = '/dashboard';
         return true;
       }
     } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
       toast.error(error.response?.data?.error || 'Login failed');
       return false;
     }
@@ -73,6 +88,9 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setPermissions({});
       toast.success('Logged out');
+      
+      // ✅ Redirect to login
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
     }
