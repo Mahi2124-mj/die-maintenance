@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiUser, FiLock, FiLogIn } from 'react-icons/fi';
+import { FiUser, FiLock, FiLogIn, FiEye, FiEyeOff } from 'react-icons/fi';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -56,13 +57,21 @@ function Login() {
             <div className="relative">
               <FiLock className="absolute left-3 top-3 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input pl-10"
+                className="input pl-10 pr-10"
                 placeholder="Enter password"
                 required
               />
+                   <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
             </div>
           </div>
           
