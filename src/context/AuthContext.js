@@ -4,15 +4,12 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
-// 🔥 FIXED: Dynamic API URL with environment variable
-const API_URL = process.env.REACT_APP_API_URL || 'https://tool-die-new-production.up.railway.app';  // ← DEFAULT CHANGE KARO
+const API_URL = process.env.REACT_APP_API_URL || 'https://tool-die-new-production.up.railway.app';
 axios.defaults.baseURL = API_URL;
 axios.defaults.withCredentials = true;
-axios.defaults.headers.common['Content-Type'] = 'application/json';  // ← YEH ADD KARO
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
-// Debug log
 console.log('🌐 API URL:', API_URL);
-console.log('🔧 withCredentials:', axios.defaults.withCredentials);  // ← YEH ADD KARO
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -21,8 +18,18 @@ export const AuthProvider = ({ children }) => {
   const [permissions, setPermissions] = useState({});
   const [loading, setLoading] = useState(true);
 
+  // ✅ LOAD USER FROM localStorage ON INITIAL LOAD
   useEffect(() => {
-    checkAuth();
+    const storedUser = localStorage.getItem('user');
+    const storedPermissions = localStorage.getItem('permissions');
+    
+    if (storedUser && storedPermissions) {
+      setUser(JSON.parse(storedUser));
+      setPermissions(JSON.parse(storedPermissions));
+      setLoading(false);
+    } else {
+      checkAuth();
+    }
   }, []);
 
   useEffect(() => {
@@ -32,6 +39,8 @@ export const AuthProvider = ({ children }) => {
         if (error?.response?.status === 401) {
           setUser(null);
           setPermissions({});
+          localStorage.removeItem('user');
+          localStorage.removeItem('permissions');
         }
         return Promise.reject(error);
       }
@@ -47,12 +56,22 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.get('/api/auth/me');
       if (response.data.success) {
         setUser(response.data.data);
+        
+        // ✅ SAVE TO localStorage
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        
         // Fetch permissions
         const permsResponse = await axios.get('/api/auth/permissions');
         setPermissions(permsResponse.data.data);
+        localStorage.setItem('permissions', JSON.stringify(permsResponse.data.data));
+      } else {
+        localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      localStorage.removeItem('user');
+      localStorage.removeItem('permissions');
     } finally {
       setLoading(false);
     }
@@ -65,9 +84,12 @@ export const AuthProvider = ({ children }) => {
       if (response.data.success) {
         setUser(response.data.data);
         setPermissions(response.data.data.permissions || {});
-        toast.success('Login successful');
         
-        // ✅ Force redirect to dashboard
+        // ✅ SAVE TO localStorage
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        localStorage.setItem('permissions', JSON.stringify(response.data.data.permissions || {}));
+        
+        toast.success('Login successful');
         window.location.href = '/dashboard';
         return true;
       }
@@ -83,9 +105,12 @@ export const AuthProvider = ({ children }) => {
       await axios.post('/api/auth/logout');
       setUser(null);
       setPermissions({});
-      toast.success('Logged out');
       
-      // ✅ Force redirect to login
+      // ✅ CLEAR localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('permissions');
+      
+      toast.success('Logged out');
       window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
