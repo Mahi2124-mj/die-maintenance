@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiUser, FiLock, FiLogIn } from 'react-icons/fi';
@@ -7,8 +7,15 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  // ✅ Agar already logged in hai to dashboard pe bhejo
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +23,8 @@ function Login() {
     const success = await login(username, password);
     setLoading(false);
     if (success) {
-      navigate('/dashboard');
+      // ✅ Force redirect with replace
+      navigate('/dashboard', { replace: true });
     }
   };
 
@@ -45,6 +53,7 @@ function Login() {
                 className="input pl-10"
                 placeholder="Enter username"
                 required
+                disabled={loading}
               />
             </div>
           </div>
@@ -62,6 +71,7 @@ function Login() {
                 className="input pl-10"
                 placeholder="Enter password"
                 required
+                disabled={loading}
               />
             </div>
           </div>
