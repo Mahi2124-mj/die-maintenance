@@ -4,9 +4,13 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
-// Configure axios
-axios.defaults.baseURL = 'http://localhost:5000';
+// 🔥 FIXED: Dynamic API URL with environment variable
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+axios.defaults.baseURL = API_URL;
 axios.defaults.withCredentials = true;
+
+// Debug log (remove in production if needed)
+console.log('🌐 API URL:', API_URL);
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -54,6 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
+      console.log('🔐 Login attempt to:', API_URL);
       const response = await axios.post('/api/auth/login', { username, password });
       if (response.data.success) {
         setUser(response.data.data);
@@ -62,6 +67,7 @@ export const AuthProvider = ({ children }) => {
         return true;
       }
     } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
       toast.error(error.response?.data?.error || 'Login failed');
       return false;
     }
