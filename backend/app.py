@@ -24,9 +24,19 @@ from supabase import create_client, Client
 load_dotenv()
 
 app = Flask(__name__)
-# Keep a stable fallback key in local/dev mode so sessions survive server restarts.
-# In production, always set SECRET_KEY in environment.
-app.secret_key = os.getenv('SECRET_KEY') or 'dev-secret-key-change-me'
+
+# 🔥 FIX 1: SECRET KEY - PRODUCTION READY
+app.secret_key = os.getenv('SECRET_KEY') or secrets.token_hex(32)
+
+# 🔥 FIX 2: SESSION CONFIGURATION FOR CROSS-DOMAIN COOKIES
+app.config.update(
+    SESSION_COOKIE_SAMESITE="None",      # Critical for cross-site requests
+    SESSION_COOKIE_SECURE=True,          # Required when SameSite=None
+    SESSION_COOKIE_HTTPONLY=True,        # Security best practice
+    SESSION_COOKIE_DOMAIN=None,          # Let browser handle domain automatically
+    SESSION_COOKIE_PATH='/',              # Available on all paths
+    PERMANENT_SESSION_LIFETIME=timedelta(days=7)  # Session duration
+)
 
 # ✅ FINAL CORS FIX - SAB ALLOW (PRODUCTION READY)
 CORS(app,
