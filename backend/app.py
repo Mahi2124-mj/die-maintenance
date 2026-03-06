@@ -34,14 +34,21 @@ cors_origins = [
     for origin in os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3001').split(',')
     if origin.strip()
 ]
+# ✅ YEH NAYA CORS CODE - COPY PASTE KARO
 CORS(
     app,
     supports_credentials=True,
-    origins=cors_origins,
+    origins=[
+        'http://localhost:3000',
+        'https://die-health.vercel.app',
+        'https://die-maintenance.vercel.app',
+        'https://*.vercel.app'
+    ],
     methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allow_headers=['Content-Type', 'Authorization']
+    allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+    expose_headers=['Content-Type', 'Authorization'],
+    max_age=600
 )
-
 # Supabase Configuration
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_KEY')
