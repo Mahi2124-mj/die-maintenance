@@ -31,31 +31,27 @@ app.secret_key = os.getenv('SECRET_KEY') or 'dev-secret-key-change-me'
 # ✅ FINAL CORS FIX - SAB ALLOW (PRODUCTION READY)
 CORS(app, 
      supports_credentials=True, 
-     origins="*",
+     origins=[
+         "https://die-maintenance.vercel.app",
+         "http://localhost:3000",
+         "https://tool-die-new-production.up.railway.app"
+     ],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["*"],
-     expose_headers=["*"])
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+     expose_headers=["Content-Type", "Authorization"],
+     max_age=600)
 
-# ✅ PREFLIGHT REQUEST HANDLER
+# ✅ Preflight requests ke liye
 @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
 @app.route('/<path:path>', methods=['OPTIONS'])
 def handle_options(path):
     return '', 200, {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': 'https://die-maintenance.vercel.app',
         'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Requested-With',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Max-Age': '3600'
     }
-
-# ✅ AFTER REQUEST HEADERS
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', '*')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
 
 
 
