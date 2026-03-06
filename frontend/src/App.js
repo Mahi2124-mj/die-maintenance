@@ -17,36 +17,70 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Protected Route Component
 function PrivateRoute({ children, permission }) {
-  const { user, permissions } = useAuth();
+  const { user, permissions, loading } = useAuth();
   
-  if (!user) {
-    return <Navigate to="/login" />;
+  // ✅ Loading state handle karo
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
   
+  // ✅ Agar user login nahi hai to login pe bhejo
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // ✅ Permission check
   if (permission && !permissions[permission]) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   return children;
 }
 
 function RoleRoute({ children, allowedRoles = [] }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" />;
-  if (!allowedRoles.includes(user.role)) return <Navigate to="/dashboard" />;
+  const { user, loading } = useAuth();
+  
+  // ✅ Loading state handle karo
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  if (!user) return <Navigate to="/login" replace />;
+  if (!allowedRoles.includes(user.role)) return <Navigate to="/dashboard" replace />;
   return children;
 }
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  
+  // ✅ Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-50">
       {user && <Navbar />}
       <div className={user ? 'pt-16' : ''}>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          {/* ✅ Login route - agar user already logged in hai to dashboard pe bhejo */}
+          <Route path="/login" element={
+            user ? <Navigate to="/dashboard" replace /> : <Login />
+          } />
+          
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           
           <Route path="/dashboard" element={
             <PrivateRoute>
@@ -108,6 +142,7 @@ function AppRoutes() {
             </PrivateRoute>
           } />
 
+          {/* ✅ 404 redirect */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>
